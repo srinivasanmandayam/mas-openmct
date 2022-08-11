@@ -162,7 +162,6 @@ async function createPlanFromJSON(page, { name, json, parent = 'mine' }) {
  * @returns {Promise<string>} uuid of the domain object
  */
 async function createExampleTelemetryObject(page) {
-
     //TODO Make this field more accessible
     const nameInput = page.locator('input[type="text"]').nth(2);
 
@@ -172,7 +171,7 @@ async function createExampleTelemetryObject(page) {
 
     await page.locator('li:has-text("Sine Wave Generator")').click();
 
-    await page.locator(nameInput).fill('VIPER Rover Heading');
+    await nameInput.fill('VIPER Rover Heading');
 
     await page.locator('[aria-label="Period"]').fill('1');
 
@@ -190,7 +189,8 @@ async function createExampleTelemetryObject(page) {
 
     await page.locator('text=OK').click();
 
-    await page.waitForLoadState();
+    // Wait until the URL is updated
+    await page.waitForURL(`**/mine/*`);
 
     const uuid = getFocusedObjectUuid(page);
 
