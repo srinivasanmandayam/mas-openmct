@@ -1134,7 +1134,7 @@ export default {
             return annotationsByPoints.flat();
         },
         getPointsInBox(boundingBox, rawAnnotation) {
-            console.time('⏱️ rbush load');
+            //console.time('⏱️ rbush load');
             const seriesResults = [];
             this.seriesModels.forEach(seriesModel => {
                 const seriesData = seriesModel.getSeriesData();
@@ -1163,13 +1163,13 @@ export default {
                     }
                 }
             });
-            console.timeEnd('⏱️ rbush load');
-            console.debug(`🍊 rbush found ${seriesResults.length} points in box.`);
+            //console.timeEnd('⏱️ rbush load');
+            //console.debug(`🍊 rbush found ${seriesResults.length} points in box.`);
 
             return seriesResults;
         },
         getPointsInBoxKDTree(boundingBox, rawAnnotation) {
-            console.time('⏱️ kd tree load');
+            //console.time('⏱️ kd tree load');
             // load series models in KD-Trees
             const seriesKDTrees = [];
             this.seriesModels.forEach(seriesModel => {
@@ -1210,9 +1210,9 @@ export default {
                     }
                 }
             });
-            console.timeEnd('⏱️ kd tree load');
+            //console.timeEnd('⏱️ kd tree load');
 
-            console.debug(`🍇 kdtree found ${seriesKDTrees.length} points in box.`);
+            //console.debug(`🍇 kdtree found ${seriesKDTrees.length} points in box.`);
 
             return seriesKDTrees;
         },

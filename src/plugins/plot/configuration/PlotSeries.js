@@ -292,6 +292,7 @@ export default class PlotSeries extends Model {
         this.plotRBush.clear();
         this.emit('reset');
         if (newData) {
+            this.plotRBush.load(newData);
             newData.forEach(function (point) {
                 this.add(point, true);
             }, this);
@@ -401,7 +402,10 @@ export default class PlotSeries extends Model {
     add(point, appendOnly) {
         let data = this.getSeriesData();
         let insertIndex = data.length;
-        this.plotRBush.insert(point);
+        if (!appendOnly) {
+            this.plotRBush.insert(point);
+        }
+
         const currentYVal = this.getYVal(point);
         const lastYVal = this.getYVal(data[insertIndex - 1]);
 
