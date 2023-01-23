@@ -24,6 +24,7 @@ import Model from "./Model";
 import { MARKER_SHAPES } from '../draw/MarkerShapes';
 import configStore from "../configuration/ConfigStore";
 import { symlog } from '../mathUtils';
+import PlotRBush from './PlotRBush';
 
 /**
  * Plot series handle interpreting telemetry metadata for a single telemetry
@@ -151,6 +152,7 @@ export default class PlotSeries extends Model {
     initialize(options) {
         this.openmct = options.openmct;
         this.domainObject = options.domainObject;
+        this.plotRBush = new PlotRBush(this);
         this.keyString = this.openmct.objects.makeKeyString(this.domainObject.identifier);
         this.dataStoreId = `data-${options.collection.plot.id}-${this.keyString}`;
         this.updateSeriesData([]);
@@ -287,6 +289,7 @@ export default class PlotSeries extends Model {
     reset(newData) {
         this.updateSeriesData([]);
         this.resetStats();
+        this.plotRBush.clear();
         this.emit('reset');
         if (newData) {
             newData.forEach(function (point) {
@@ -398,6 +401,7 @@ export default class PlotSeries extends Model {
     add(point, appendOnly) {
         let data = this.getSeriesData();
         let insertIndex = data.length;
+        this.plotRBush.insert(point);
         const currentYVal = this.getYVal(point);
         const lastYVal = this.getYVal(data[insertIndex - 1]);
 
@@ -425,6 +429,12 @@ export default class PlotSeries extends Model {
         this.emit('add', point, insertIndex, this);
     }
 
+    findPointsInBounds(bounds) {
+        const pointsInBounds = this.plotRBush.search(bounds);
+
+        return pointsInBounds;
+    }
+
     /**
      *
      * @private
@@ -440,6 +450,7 @@ export default class PlotSeries extends Model {
     remove(point) {
         let data = this.getSeriesData();
         const index = data.indexOf(point);
+        this.plotRBush.remove(point);
         data.splice(index, 1);
         this.updateSeriesData(data);
         this.emit('remove', point, index, this);
@@ -458,19 +469,20 @@ export default class PlotSeries extends Model {
         const startIndex = this.sortedIndex(range.min);
         const endIndex = this.sortedIndex(range.max) + 1;
         let data = this.getSeriesData();
+        this.plotRBush.clear();
         const pointsToRemove = startIndex + (data.length - endIndex + 1);
         if (pointsToRemove > 0) {
             if (pointsToRemove < 1000) {
                 data.slice(0, startIndex).forEach(this.remove, this);
                 data.slice(endIndex, data.length).forEach(this.remove, this);
                 this.updateSeriesData(data);
+                this.plotRBush.load(data);
                 this.resetStats();
             } else {
                 const newData = this.getSeriesData().slice(startIndex, endIndex);
                 this.reset(newData);
             }
         }
-
     }
     /**
      * Updates filters, clears the plot series, unsubscribes and resubscribes

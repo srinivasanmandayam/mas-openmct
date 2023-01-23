@@ -81,6 +81,7 @@ const config = {
                 "src/api/objects/object-utils.js"
             ),
             "kdbush": path.join(projectRootDir, "node_modules/kdbush/kdbush.min.js"),
+            "rbush": path.join(projectRootDir, "node_modules/rbush/rbush.min.js"),
             utils: path.join(projectRootDir, "src/utils")
         }
     },

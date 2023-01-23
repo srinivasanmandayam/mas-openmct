@@ -1134,6 +1134,42 @@ export default {
             return annotationsByPoints.flat();
         },
         getPointsInBox(boundingBox, rawAnnotation) {
+            console.time('⏱️ rbush load');
+            const seriesResults = [];
+            this.seriesModels.forEach(seriesModel => {
+                const seriesData = seriesModel.getSeriesData();
+                if (seriesData && seriesData.length) {
+                    const searchResults = [];
+                    const rangeResults = seriesModel.findPointsInBounds(boundingBox);
+                    rangeResults.forEach(seriesDatum => {
+                        const result = {
+                            series: seriesModel,
+                            point: seriesDatum
+                        };
+                        searchResults.push(result);
+
+                        if (rawAnnotation) {
+                            if (!seriesDatum.annotationsById) {
+                                seriesDatum.annotationsById = {};
+                            }
+
+                            const annotationKeyString = this.openmct.objects.makeKeyString(rawAnnotation.identifier);
+                            seriesDatum.annotationsById[annotationKeyString] = rawAnnotation;
+                        }
+
+                    });
+                    if (searchResults.length) {
+                        seriesResults.push(searchResults);
+                    }
+                }
+            });
+            console.timeEnd('⏱️ rbush load');
+            console.debug(`🍊 rbush found ${seriesResults.length} points in box.`);
+
+            return seriesResults;
+        },
+        getPointsInBoxKDTree(boundingBox, rawAnnotation) {
+            console.time('⏱️ kd tree load');
             // load series models in KD-Trees
             const seriesKDTrees = [];
             this.seriesModels.forEach(seriesModel => {
@@ -1174,6 +1210,9 @@ export default {
                     }
                 }
             });
+            console.timeEnd('⏱️ kd tree load');
+
+            console.debug(`🍇 kdtree found ${seriesKDTrees.length} points in box.`);
 
             return seriesKDTrees;
         },
