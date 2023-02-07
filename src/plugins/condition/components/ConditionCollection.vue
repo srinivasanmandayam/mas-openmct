@@ -91,7 +91,7 @@ export default {
     components: {
         Condition
     },
-    inject: ['openmct', 'domainObject', 'objectPath'],
+    inject: ['openmct', 'domainObject'],
     props: {
         isEditing: Boolean,
         testData: {
@@ -147,7 +147,6 @@ export default {
         }
     },
     mounted() {
-        this.timeContext = this.openmct.time.getContextForView(this.objectPath);
         this.composition = this.openmct.composition.get(this.domainObject);
         this.composition.on('add', this.addTelemetryObject);
         this.composition.on('remove', this.removeTelemetryObject);
