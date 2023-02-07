@@ -91,7 +91,7 @@ export default {
     components: {
         Condition
     },
-    inject: ['openmct', 'domainObject'],
+    inject: ['openmct', 'domainObject', 'objectPath'],
     props: {
         isEditing: Boolean,
         testData: {
@@ -129,6 +129,7 @@ export default {
     destroyed() {
         this.composition.off('add', this.addTelemetryObject);
         this.composition.off('remove', this.removeTelemetryObject);
+        this.openmct.time.off('bounds', this.boundsChange, this);
         if (this.conditionManager) {
             this.conditionManager.off('conditionSetResultUpdated', this.handleConditionSetResultUpdated);
             this.conditionManager.destroy();
@@ -146,6 +147,7 @@ export default {
         }
     },
     mounted() {
+        this.timeContext = this.openmct.time.getContextForView(this.objectPath);
         this.composition = this.openmct.composition.get(this.domainObject);
         this.composition.on('add', this.addTelemetryObject);
         this.composition.on('remove', this.removeTelemetryObject);
@@ -155,8 +157,23 @@ export default {
         this.conditionManager = new ConditionManager(this.domainObject, this.openmct);
         this.conditionManager.on('conditionSetResultUpdated', this.handleConditionSetResultUpdated);
         this.stalenessSubscription = {};
+        this.openmct.time.on('bounds', this.boundsChange, this);
+        this.updateLatestValues();
     },
     methods: {
+        async updateLatestValues() {
+            let options = {};
+            this.openmct.telemetry.standardizeRequestOptions(options);
+            // there is always only one output
+            const latestOutput = await this.conditionManager.requestLADConditionSetOutput(options);
+            const singleOutput = latestOutput?.[0];
+            if (singleOutput) {
+                this.handleConditionSetResultUpdated(singleOutput);
+            }
+        },
+        boundsChange() {
+            this.updateLatestValues();
+        },
         handleConditionSetResultUpdated(data) {
             this.currentConditionId = data.conditionId;
             this.$emit('conditionSetResultUpdated', data);
